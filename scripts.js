@@ -13,7 +13,7 @@ console.log('js');
     let ballFillColor = "#0095DD"
 //DEFINE PADDLE
     let paddleHeight = 10;
-    let paddleWidth = 1000;
+    let paddleWidth = 150;
     let paddleX = (canvas.width-paddleWidth)/2;
 //PADDLE MOVEMENT
     let rightPressed = false;
@@ -37,20 +37,25 @@ console.log('js');
         }
     }
 
-    let score = 0
-
+    let score = 0; 
+    let lives = 3; 
 
 
 
     
     document.addEventListener('keydown', keyDownHandler, false); 
     document.addEventListener('keyup', keyUpHandler, false);
-    // document.addEventListener("mousemove", mouseMoveHandler, false);
+
+    function allowMouseControl() {
+        document.addEventListener("mousemove", mouseMoveHandler, false);
+    }
+    
 
     
     function changeBallColor () {
         return '#'+Math.floor(Math.random()*16777215).toString(16); 
     }
+
     function keyDownHandler(e) {
         if(e.keyCode == 39) {
             rightPressed = true;
@@ -62,8 +67,7 @@ console.log('js');
         // } else if (e.keyCode == 65) {
         //     dx -= Math.abs(dx) - 1; 
         // }
-    }
-    
+    }  
     function keyUpHandler(e) {
         if(e.keyCode == 39) {
             rightPressed = false;
@@ -90,20 +94,23 @@ console.log('js');
           }
         }
       }
-
     function drawScore() {
         ctx.font = '16px Arial'; 
         ctx.fillStyle = '#0095DD'; 
         ctx.fillText("Score: "+score, 8, 20); 
     }
-
+    function drawLives() {
+        ctx.font = "16px Arial";
+        ctx.fillStyle = "#0095DD";
+        ctx.fillText("Lives: "+lives, canvas.width-65, 20);
+    }
     function mouseMoveHandler(e) {
-        var relativeX = e.clientX - canvas.offsetLeft;
+        // console.log(e);
+        var relativeX = e.clientX - canvas.offsetLeft;        
         if(relativeX > 0 && relativeX < canvas.width) {
             paddleX = relativeX - paddleWidth/2;
         }
     }
-
     
     function drawBall() {
         ctx.beginPath();
@@ -148,6 +155,7 @@ console.log('js');
         drawPaddle();
         collisionDetection();
         drawScore(); 
+        drawLives(); 
         ballFillColor = changeBallColor(); 
         if(x + dx > canvas.width-ballRadius || x + dx < ballRadius) {
             dx = -dx;
@@ -160,8 +168,19 @@ console.log('js');
               dy = -dy;
             }
             else {
-            //   alert("GAME OVER");
-              document.location.reload();
+                lives--;
+                if(!lives) {
+                    alert("GAME OVER");
+                    document.location.reload();
+                }
+                else {
+                    x = canvas.width/2;
+                    y = canvas.height-30;
+                    dx = 5;
+                    dy = -5;
+                    paddleX = (canvas.width-paddleWidth)/2;
+                    
+                }
             }
           }
         if(rightPressed && paddleX < canvas.width-paddleWidth) {
@@ -176,17 +195,21 @@ console.log('js');
         // console.log(x, y, dx, dy);  
     }
 
+//RUN DRAW ONCE UPON LOAD
     draw(); 
 
     function pauseGame() {
-        console.log(startInterval);
-        clearInterval(startInterval); 
+        clearInterval(interval); 
     }
 
     function startGame() {
-        startInterval = setInterval(draw, 10); 
-
+        if (!interval){
+            interval = setInterval(draw, 10); 
+        }
+        else if (interval >= 1){
+            clearInterval(interval)
+            interval = setInterval(draw, 10)
+        }
     }
 
-
-    let startInterval; 
+    let interval; 
