@@ -13,69 +13,28 @@ console.log('js');
     let ballFillColor = "#0095DD"
 //DEFINE PADDLE
     let paddleHeight = 10;
-    let paddleWidth = 75;
+    let paddleWidth = 150;
     let paddleX = (canvas.width-paddleWidth)/2;
 //PADDLE MOVEMENT
     let rightPressed = false;
     let leftPressed = false;
 
-    let counter = 0; 
+//BRICKS
+    let brickRowCount = 3;
+    let brickColumnCount = 12;
+    let brickWidth = 75;
+    let brickHeight = 40;
+    let brickPaddingTop = 10;
+    let brickPaddingLeft = 1;
+    let brickOffsetTop = 30;
+    let brickOffsetLeft = 28;
 
-    
-    function drawBall() {
-        ctx.beginPath();
-        ctx.arc(x, y, ballRadius, 0, Math.PI*2);
-        ctx.fillStyle = ballFillColor;
-        ctx.fill();
-        ctx.closePath();
-    }
-
-    function drawPaddle() {
-        ctx.beginPath();
-        ctx.rect(paddleX, canvas.height-paddleHeight, paddleWidth, paddleHeight);
-        ctx.fillStyle = "#0095DD";
-        ctx.fill();
-        ctx.closePath();
-    }
-    
-    function draw() {        
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        drawBall();
-        drawPaddle(); 
-
-        //If ball its either side, dx is inverted
-        if(x + dx > canvas.width-ballRadius || x + dx < ballRadius) {
-            dx = -dx;
-            ballFillColor = changeBallColor(); 
+    var bricks = [];
+    for(var c=0; c<brickColumnCount; c++) {
+        bricks[c] = [];
+        for(var r=0; r<brickRowCount; r++) {
+            bricks[c][r] = { x: 0, y: 0, status: 1 };
         }
-
-        //If ball hits top dy is inverted
-        if(y + dy < ballRadius) {
-            dy = -dy;
-        //else if ball hits paddle dy is inverted. 
-        } else if(y + dy > canvas.height-ballRadius) {
-            if(x > paddleX && x < paddleX + paddleWidth) {
-                dy = -dy;
-                counter ++; 
-                console.log(counter);
-                
-            }
-            //if ball doesn't hit paddle, game over
-            else {
-                alert("GAME OVER");
-                // document.location.reload();
-            }
-        }
-
-        if(rightPressed && paddleX < canvas.width-paddleWidth) {
-            paddleX += 7;
-        }
-        else if(leftPressed && paddleX > 0) {
-            paddleX -= 7;
-        }
-
-        x += dx;
-        y += dy;
     }
 
     function changeBallColor () {
@@ -107,5 +66,110 @@ console.log('js');
         }
     }
 
+    function collisionDetection() {
+        for(var c=0; c<brickColumnCount; c++) {
+          for(var r=0; r<brickRowCount; r++) {
+            var b = bricks[c][r];
+            if(b.status == 1) {
+              if(x > b.x && x < b.x+brickWidth && y > b.y && y < b.y+brickHeight) {
+                dy = -dy;
+                b.status = 0;
+              }
+            }
+          }
+        }
+      }
 
-    setInterval(draw, 10); 
+    
+    function drawBall() {
+        ctx.beginPath();
+        ctx.arc(x, y, ballRadius, 0, Math.PI*2);
+        ctx.fillStyle = ballFillColor;
+        ctx.fill();
+        ctx.closePath();
+    }
+
+    function drawPaddle() {
+        ctx.beginPath();
+        ctx.rect(paddleX, canvas.height-paddleHeight, paddleWidth, paddleHeight);
+        ctx.fillStyle = "#0095DD";
+        ctx.fill();
+        ctx.closePath();
+    }
+
+    function drawBricks() {
+        for(let c=0; c<brickColumnCount; c++) {
+            for(let r=0; r<brickRowCount; r++) {
+                if(bricks[c][r].status === 1){
+                    let brickX = (c*(brickWidth+brickPaddingLeft))+brickOffsetLeft;
+                    let brickY = (r*(brickHeight+brickPaddingTop))+brickOffsetTop;
+                    bricks[c][r].x = brickX;
+                    bricks[c][r].y = brickY;
+                    ctx.beginPath();
+                    ctx.rect(brickX, brickY, brickWidth, brickHeight);
+                    ctx.fillStyle = "#0095DD";
+                    ctx.fill();
+                    ctx.closePath();
+                }
+            }
+        }
+    }
+
+
+    
+    function draw() {        
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawBricks(); 
+        drawBall();
+        drawPaddle();
+        collisionDetection();
+
+        
+
+        //If ball its either side, dx is inverted
+        if(x + dx > canvas.width-ballRadius || x + dx < ballRadius) {
+            dx = -dx;
+            ballFillColor = changeBallColor(); 
+        }
+
+        //If ball hits top dy is inverted
+        if(y + dy < ballRadius) {
+            dy = -dy;
+        //else if ball hits paddle dy is inverted. 
+        } 
+        else if(y + dy > canvas.height-ballRadius) {
+            if(x > paddleX && x < (paddleX + paddleWidth/2)) {
+                dy = -dy;
+                counter ++; 
+                console.log(counter);
+            }
+            else if(x > paddleX && x > (paddleX + paddleWidth/2)) {
+                dy = -dy;
+                dx = -dx;
+                counter ++; 
+            }
+
+            //if ball doesn't hit paddle, game over
+            else {
+                // alert("GAME OVER");
+                document.location.reload();
+            }
+        }
+
+        if(rightPressed && paddleX < canvas.width-paddleWidth) {
+            paddleX += 7;
+        }
+        else if(leftPressed && paddleX > 0) {
+            paddleX -= 7;
+        }
+
+        x += dx;
+        y += dy;
+        // console.log(x, y, dx, dy);
+        
+    }
+
+  
+
+
+    setInterval(draw, 25); 
