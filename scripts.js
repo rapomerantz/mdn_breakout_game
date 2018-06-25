@@ -13,7 +13,7 @@ console.log('js');
     let ballFillColor = "#0095DD"
 //DEFINE PADDLE
     let paddleHeight = 10;
-    let paddleWidth = 150;
+    let paddleWidth = 1000;
     let paddleX = (canvas.width-paddleWidth)/2;
 //PADDLE MOVEMENT
     let rightPressed = false;
@@ -29,21 +29,28 @@ console.log('js');
     let brickOffsetTop = 30;
     let brickOffsetLeft = 28;
 
-    var bricks = [];
-    for(var c=0; c<brickColumnCount; c++) {
+    let bricks = [];
+    for(let c=0; c<brickColumnCount; c++) {
         bricks[c] = [];
-        for(var r=0; r<brickRowCount; r++) {
+        for(let r=0; r<brickRowCount; r++) {
             bricks[c][r] = { x: 0, y: 0, status: 1 };
         }
     }
 
+    let score = 0
+
+
+
+
+    
+    document.addEventListener('keydown', keyDownHandler, false); 
+    document.addEventListener('keyup', keyUpHandler, false);
+    // document.addEventListener("mousemove", mouseMoveHandler, false);
+
+    
     function changeBallColor () {
         return '#'+Math.floor(Math.random()*16777215).toString(16); 
     }
-
-    document.addEventListener('keydown', keyDownHandler, false); 
-    document.addEventListener('keyup', keyUpHandler, false);
-
     function keyDownHandler(e) {
         if(e.keyCode == 39) {
             rightPressed = true;
@@ -67,18 +74,35 @@ console.log('js');
     }
 
     function collisionDetection() {
-        for(var c=0; c<brickColumnCount; c++) {
-          for(var r=0; r<brickRowCount; r++) {
-            var b = bricks[c][r];
+        for(let c=0; c<brickColumnCount; c++) {
+          for(let r=0; r<brickRowCount; r++) {
+            let b = bricks[c][r];
             if(b.status == 1) {
               if(x > b.x && x < b.x+brickWidth && y > b.y && y < b.y+brickHeight) {
                 dy = -dy;
                 b.status = 0;
+                score ++; 
+                if (score === brickColumnCount * brickRowCount) {
+                    alert("YOU WON! Reload the page baby! ")
+                }
               }
             }
           }
         }
       }
+
+    function drawScore() {
+        ctx.font = '16px Arial'; 
+        ctx.fillStyle = '#0095DD'; 
+        ctx.fillText("Score: "+score, 8, 20); 
+    }
+
+    function mouseMoveHandler(e) {
+        var relativeX = e.clientX - canvas.offsetLeft;
+        if(relativeX > 0 && relativeX < canvas.width) {
+            paddleX = relativeX - paddleWidth/2;
+        }
+    }
 
     
     function drawBall() {
@@ -123,39 +147,23 @@ console.log('js');
         drawBall();
         drawPaddle();
         collisionDetection();
-
-        
-
-        //If ball its either side, dx is inverted
+        drawScore(); 
+        ballFillColor = changeBallColor(); 
         if(x + dx > canvas.width-ballRadius || x + dx < ballRadius) {
             dx = -dx;
-            ballFillColor = changeBallColor(); 
-        }
-
-        //If ball hits top dy is inverted
-        if(y + dy < ballRadius) {
+          }
+          if(y + dy < ballRadius) {
             dy = -dy;
-        //else if ball hits paddle dy is inverted. 
-        } 
-        else if(y + dy > canvas.height-ballRadius) {
-            if(x > paddleX && x < (paddleX + paddleWidth/2)) {
-                dy = -dy;
-                counter ++; 
-                console.log(counter);
+          }
+          else if(y + dy > canvas.height-ballRadius) {
+            if(x > paddleX && x < paddleX + paddleWidth) {
+              dy = -dy;
             }
-            else if(x > paddleX && x > (paddleX + paddleWidth/2)) {
-                dy = -dy;
-                dx = -dx;
-                counter ++; 
-            }
-
-            //if ball doesn't hit paddle, game over
             else {
-                // alert("GAME OVER");
-                document.location.reload();
+            //   alert("GAME OVER");
+              document.location.reload();
             }
-        }
-
+          }
         if(rightPressed && paddleX < canvas.width-paddleWidth) {
             paddleX += 7;
         }
@@ -165,11 +173,20 @@ console.log('js');
 
         x += dx;
         y += dy;
-        // console.log(x, y, dx, dy);
-        
+        // console.log(x, y, dx, dy);  
     }
 
-  
+    draw(); 
+
+    function pauseGame() {
+        console.log(startInterval);
+        clearInterval(startInterval); 
+    }
+
+    function startGame() {
+        startInterval = setInterval(draw, 10); 
+
+    }
 
 
-    setInterval(draw, 25); 
+    let startInterval; 
