@@ -36,9 +36,9 @@ console.log('js');
             bricks[c][r] = { x: 0, y: 0, status: 1 };
         }
     }
-
     let score = 0; 
     let lives = 3; 
+    let colorChangeTracker = 0; 
 
 
 
@@ -49,8 +49,6 @@ console.log('js');
     function allowMouseControl() {
         document.addEventListener("mousemove", mouseMoveHandler, false);
     }
-    
-
     
     function changeBallColor () {
         return '#'+Math.floor(Math.random()*16777215).toString(16); 
@@ -76,7 +74,13 @@ console.log('js');
             leftPressed = false;
         }
     }
-
+    function mouseMoveHandler(e) {
+        // console.log(e);
+        var relativeX = e.clientX - canvas.offsetLeft;        
+        if(relativeX > 0 && relativeX < canvas.width) {
+            paddleX = relativeX - paddleWidth/2;
+        }
+    }
     function collisionDetection() {
         for(let c=0; c<brickColumnCount; c++) {
           for(let r=0; r<brickRowCount; r++) {
@@ -93,7 +97,7 @@ console.log('js');
             }
           }
         }
-      }
+    }
     function drawScore() {
         ctx.font = '16px Arial'; 
         ctx.fillStyle = '#0095DD'; 
@@ -104,14 +108,6 @@ console.log('js');
         ctx.fillStyle = "#0095DD";
         ctx.fillText("Lives: "+lives, canvas.width-65, 20);
     }
-    function mouseMoveHandler(e) {
-        // console.log(e);
-        var relativeX = e.clientX - canvas.offsetLeft;        
-        if(relativeX > 0 && relativeX < canvas.width) {
-            paddleX = relativeX - paddleWidth/2;
-        }
-    }
-    
     function drawBall() {
         ctx.beginPath();
         ctx.arc(x, y, ballRadius, 0, Math.PI*2);
@@ -119,7 +115,6 @@ console.log('js');
         ctx.fill();
         ctx.closePath();
     }
-
     function drawPaddle() {
         ctx.beginPath();
         ctx.rect(paddleX, canvas.height-paddleHeight, paddleWidth, paddleHeight);
@@ -156,7 +151,12 @@ console.log('js');
         collisionDetection();
         drawScore(); 
         drawLives(); 
-        ballFillColor = changeBallColor(); 
+
+        if (colorChangeTracker === 10){
+            ballFillColor = changeBallColor(); 
+            colorChangeTracker = 0; 
+        }
+
         if(x + dx > canvas.width-ballRadius || x + dx < ballRadius) {
             dx = -dx;
           }
@@ -178,8 +178,7 @@ console.log('js');
                     y = canvas.height-30;
                     dx = 5;
                     dy = -5;
-                    paddleX = (canvas.width-paddleWidth)/2;
-                    
+                    paddleX = (canvas.width-paddleWidth)/2;  
                 }
             }
           }
@@ -189,9 +188,10 @@ console.log('js');
         else if(leftPressed && paddleX > 0) {
             paddleX -= 7;
         }
-
         x += dx;
         y += dy;
+        colorChangeTracker++; 
+        
         // console.log(x, y, dx, dy);  
     }
 
